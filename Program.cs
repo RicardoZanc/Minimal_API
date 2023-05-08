@@ -34,6 +34,16 @@ app.MapGet("/bandas/{id}", async
         .Produces<Bandas>(StatusCodes.Status200OK)
         .Produces<Bandas>(StatusCodes.Status404NotFound);
 
+app.MapPost("/bandas", async
+    (MinimalContextDb context,
+     Bandas banda) =>
+{
+    context.Bandas.Add(banda);
+    var result = await context.SaveChangesAsync();
+})
+    .Produces<Bandas>(StatusCodes.Status201Created)
+    .Produces(StatusCodes.Status400BadRequest);
+
 
 
 
