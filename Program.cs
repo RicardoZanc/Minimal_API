@@ -1,6 +1,7 @@
 using Bandas_Api.Data;
 using Bandas_Api.Models;
 using Microsoft.EntityFrameworkCore;
+using MiniValidation;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,10 +38,19 @@ app.MapGet("/bandas/{id}", async
 app.MapPost("/bandas", async
     (MinimalContextDb context,
      Bandas banda) =>
-{
-    context.Bandas.Add(banda);
-    var result = await context.SaveChangesAsync();
-})
+        {
+            //Valida banda
+            if (!MiniValidator.TryValidate(banda, out var errors))
+            {return Results.ValidationProblem(errors); }
+    
+            //Insere Banda
+            context.Bandas.Add(banda);
+            var result = await context.SaveChangesAsync();
+
+            return result > 0
+            ? Results.Created($"/bandas/{banda.Name}", banda)
+            : Results.BadRequest("Houve um erro ao salvar a banda");
+        })
     .Produces<Bandas>(StatusCodes.Status201Created)
     .Produces(StatusCodes.Status400BadRequest);
 
