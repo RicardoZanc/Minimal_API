@@ -54,7 +54,25 @@ app.MapPost("/bandas", async
     .Produces<Bandas>(StatusCodes.Status201Created)
     .Produces(StatusCodes.Status400BadRequest);
 
+app.MapPut("/bandas/{id}", async 
+    (Guid id,
+    MinimalContextDb context,
+    Bandas banda) => { 
+        var bandaBase = await context.Bandas.FindAsync(id);
+        if (bandaBase == null) return Results.NotFound();
 
+        if (!MiniValidator.TryValidate(banda, out var errors))
+        { return Results.ValidationProblem(errors); }
+
+        context.Bandas.Update(banda);
+        var result = await context.SaveChangesAsync();
+
+        return result > 0
+            ? Results.NoContent()
+            : Results.BadRequest("Ocorreu erro ao salvar alteração");       
+    }).ProducesValidationProblem()
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces(StatusCodes.Status400BadRequest);
 
 
 
