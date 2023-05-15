@@ -27,7 +27,7 @@ app.MapGet("/bandas", async
 );
 
 app.MapGet("/bandas/{id}", async
-    (Guid id, MinimalContextDb context) =>
+    (int id, MinimalContextDb context) =>
     await context.Bandas.FindAsync(id)
         is Bandas banda
         ? Results.Ok(banda)
@@ -55,7 +55,7 @@ app.MapPost("/bandas", async
     .Produces(StatusCodes.Status400BadRequest);
 
 app.MapPut("/bandas/{id}", async 
-    (Guid id,
+    (int id,
     MinimalContextDb context,
     Bandas banda) => { 
         var bandaBase = await context.Bandas.FindAsync(id);
@@ -64,7 +64,7 @@ app.MapPut("/bandas/{id}", async
         if (!MiniValidator.TryValidate(banda, out var errors))
         { return Results.ValidationProblem(errors); }
 
-        context.Bandas.Update(banda);
+        context.Bandas.Update(bandaBase);
         var result = await context.SaveChangesAsync();
 
         return result > 0
@@ -73,6 +73,23 @@ app.MapPut("/bandas/{id}", async
     }).ProducesValidationProblem()
         .Produces(StatusCodes.Status204NoContent)
         .Produces(StatusCodes.Status400BadRequest);
+
+app.MapDelete("/bandas/{id}", async
+    (int id,
+    MinimalContextDb context) =>
+{
+    var bandaBase = await context.Bandas.FindAsync(id);
+    if (bandaBase == null) return Results.NotFound();
+
+    context.Bandas.Remove(bandaBase);
+    var result = await context.SaveChangesAsync();
+
+    return result > 0
+        ? Results.NoContent()
+        : Results.BadRequest("Não foi possível deletar a banda'");
+}).Produces(StatusCodes.Status400BadRequest)
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces(StatusCodes.Status404NotFound);
 
 
 
