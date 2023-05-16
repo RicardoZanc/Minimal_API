@@ -64,7 +64,8 @@ app.MapPut("/bandas/{id}", async
         if (!MiniValidator.TryValidate(banda, out var errors))
         { return Results.ValidationProblem(errors); }
 
-        context.Bandas.Update(bandaBase);
+        bandaBase.Name = banda.Name;
+        bandaBase.Genre = banda.Genre;
         var result = await context.SaveChangesAsync();
 
         return result > 0
